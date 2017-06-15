@@ -4,6 +4,7 @@ package roundrobin
 import (
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type StickySession struct {
@@ -38,7 +39,11 @@ func (s *StickySession) GetBackend(req *http.Request, servers []*url.URL) (*url.
 }
 
 func (s *StickySession) StickBackend(backend *url.URL, w *http.ResponseWriter) {
-	c := &http.Cookie{Name: s.cookiename, Value: backend.String()}
+	// set cookie to expire one day in the future
+	// set cookie path to the root path so it is sent back to the server for all requests
+	now := time.Now()
+	tomorrow := now.AddDate(0, 1, 0)
+	c := &http.Cookie{Name: s.cookiename, Value: backend.String(), Path: "/", Expires: tomorrow}
 	http.SetCookie(*w, c)
 	return
 }
